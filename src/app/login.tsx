@@ -192,7 +192,7 @@ export default function LoginScreen() {
       if (data) {
         await login(data.token, data.refreshToken);
 
-        router.replace("/");
+        return router.push("/");
       } else {
         setError("Incorrect code. Please try again.");
         setOtp("");
