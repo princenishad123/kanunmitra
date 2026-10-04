@@ -6,10 +6,28 @@ import { FC } from "react";
 import { Platform, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const SafeView: FC<ChildrenInterface> = ({ children }) => {
+const SafeView: FC<
+  ChildrenInterface & { tabBarInset?: boolean; backgroundColor?: string }
+> = ({ children, tabBarInset = true, backgroundColor }) => {
   return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
+    <ThemedView
+      className="border border-white"
+      style={[
+        styles.container,
+        backgroundColor ? { backgroundColor } : undefined,
+      ]}
+    >
+      <SafeAreaView
+        className="border border-blue-700"
+        style={[
+          styles.safeArea,
+          {
+            paddingBottom: tabBarInset
+              ? BottomTabInset + Spacing.three
+              : Spacing.three,
+          },
+        ]}
+      >
         {children}
 
         {Platform.OS === "web" && <WebBadge />}
@@ -28,7 +46,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: Spacing.half,
     gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
     maxWidth: MaxContentWidth,
   },
   heroSection: {

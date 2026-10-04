@@ -2,6 +2,7 @@ import SafeView from "@/components/SafeView";
 import { router } from "expo-router";
 import {
     BadgeQuestionMark,
+    ChevronLeft,
     ChevronRight,
     CircleHelp,
     Crown,
@@ -15,6 +16,7 @@ import {
 } from "lucide-react-native";
 import React from "react";
 import {
+    Linking,
     Pressable,
     ScrollView,
     Share,
@@ -25,18 +27,23 @@ import {
 
 export default function Profile() {
   return (
-    <SafeView>
+    <SafeView tabBarInset={false} backgroundColor="#09090B">
       <ScrollView
         className="flex-1 px-4"
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 40 }}
       >
         {/* Header */}
-        <View className=" pt-6 pb-6">
+        <View className="flex-row items-center pt-6 pb-6">
+          <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={() => router.back()} className="mr-3 h-10 w-10 items-center justify-center rounded-full bg-zinc-900">
+            <ChevronLeft size={22} color="#FFFFFF" />
+          </Pressable>
+          <View>
           <Text className="text-white text-3xl font-bold">Profile</Text>
           <Text className="text-zinc-500 text-sm mt-1">
             Your account & subscription
           </Text>
+          </View>
         </View>
 
         {/* Profile */}
@@ -182,9 +189,11 @@ export default function Profile() {
 
         {/* Version */}
         <View className="items-center mt-8">
-          <Text className="text-zinc-600 text-xs">
-            Kanoon Jano made with <Heart size={19} color="#EF4444" /> India
-          </Text>
+          <View className="flex-row items-center">
+            <Text className="text-xs text-zinc-600">Kanoon Jano made with</Text>
+            <Heart size={13} color="#EF4444" fill="#EF4444" />
+            <Text className="text-xs text-zinc-600">India</Text>
+          </View>
 
           <Text className="text-zinc-700 text-xl mt-2">Version 1.0.0</Text>
         </View>
@@ -240,7 +249,7 @@ function MenuItem({
     }
 
     if (id === "help") {
-      router.push("https://wa.link/n1l30x");
+      await Linking.openURL("https://wa.link/n1l30x");
       return;
     }
 
