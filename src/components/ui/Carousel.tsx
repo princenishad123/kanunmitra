@@ -11,15 +11,16 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { Colors } from "@/constants/theme"; // adjust path to your theme file
+import { fetcher } from "@/lib/fetcher";
+import { useQuery } from "@tanstack/react-query";
+import CarouselSkeleton from "../loaders/CarouselSekeleton";
 
 export type CarouselItem = {
-  id: string;
-  title: string;
-  subtitle?: string;
-  /** Remote `{ uri }`, a local `require('./img.jpg')`, or a url string */
-  image: ImageSource | number | string;
-  /** Shown while the image loads */
-  color?: string;
+  _id: string;
+  duration?: string;
+  thumbnail: ImageSource | number | string;
+  slug?: string;
+  isLocked?: boolean;
 };
 
 type Props = {
@@ -98,7 +99,7 @@ function Card({
           width,
           height,
           borderRadius: 28,
-          backgroundColor: item.color ?? "#212225",
+          backgroundColor: "#212225",
           overflow: "hidden",
           // shadow
           shadowColor: "#000",
@@ -112,7 +113,9 @@ function Card({
     >
       <Image
         source={
-          typeof item.image === "string" ? { uri: item.image } : item.image
+          typeof item.thumbnail === "string"
+            ? { uri: item.thumbnail }
+            : item.thumbnail
         }
         style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
         contentFit="cover"
@@ -168,7 +171,6 @@ function Dot({
 const COPIES = 5; // data is repeated 5x, we always keep the user in the middle copy
 
 export function ScaleCarousel({
-  data,
   itemWidthRatio = 0.7,
   itemHeight = 320,
   gap = 5,
@@ -177,6 +179,13 @@ export function ScaleCarousel({
   onIndexChange,
 }: Props) {
   const { width: screenWidth } = useWindowDimensions();
+
+  const { data: carusel, isLoading } = useQuery({
+    queryKey: ["carousel"],
+    queryFn: () => fetcher("/video/carousel"),
+  });
+
+  const data = carusel.data;
 
   const n = data.length;
   const itemWidth = screenWidth * itemWidthRatio;
@@ -187,7 +196,7 @@ export function ScaleCarousel({
   const loopData = useMemo(
     () =>
       Array.from({ length: COPIES }, (_, c) =>
-        data.map((d, i) => ({ ...d, key: `${d.id}-${c}-${i}` })),
+        data.map((d: any, i: any) => ({ ...d, key: `${d.id}-${c}-${i}` })),
       ).flat(),
     [data],
   );
@@ -244,53 +253,59 @@ export function ScaleCarousel({
     return () => clearInterval(timer);
   }, [autoPlayMs, n, step, recenter, onIndexChange]);
 
+  if (isLoading) {
+    return <CarouselSkeleton />;
+  }
+
   return (
     <View className="items-center">
-      <AnimatedFlatList
-        ref={listRef}
-        data={loopData}
-        keyExtractor={(item) => item.key}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        // start in the middle
-        initialScrollIndex={startIndex}
-        // smooth snapping
-        snapToInterval={step}
-        snapToAlignment="start"
-        decelerationRate="fast"
-        disableIntervalMomentum
-        contentContainerStyle={{
-          paddingHorizontal: sidePadding,
-          paddingVertical: 24,
-          alignItems: "center",
-        }}
-        ItemSeparatorComponent={() => <View style={{ width: gap }} />}
-        onScroll={onScroll}
-        scrollEventThrottle={16}
-        onMomentumScrollEnd={handleMomentumEnd}
-        getItemLayout={(_, index) => ({
-          length: step,
-          offset: step * index,
-          index,
-        })}
-        initialNumToRender={7}
-        windowSize={7}
-        renderItem={({ item, index }) => (
-          <Card
-            item={item}
-            index={index}
-            scrollX={scrollX}
-            step={step}
-            width={itemWidth}
-            height={itemHeight}
-            sideScale={sideScale}
-          />
-        )}
-      />
+      {carusel.data && (
+        <AnimatedFlatList
+          ref={listRef}
+          data={loopData}
+          keyExtractor={(item) => item._id}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          // start in the middle
+          initialScrollIndex={startIndex}
+          // smooth snapping
+          snapToInterval={step}
+          snapToAlignment="start"
+          decelerationRate="fast"
+          disableIntervalMomentum
+          contentContainerStyle={{
+            paddingHorizontal: sidePadding,
+            paddingVertical: 24,
+            alignItems: "center",
+          }}
+          ItemSeparatorComponent={() => <View style={{ width: gap }} />}
+          onScroll={onScroll}
+          scrollEventThrottle={16}
+          onMomentumScrollEnd={handleMomentumEnd}
+          getItemLayout={(_, index) => ({
+            length: step,
+            offset: step * index,
+            index,
+          })}
+          initialNumToRender={7}
+          windowSize={7}
+          renderItem={({ item, index }) => (
+            <Card
+              item={item}
+              index={index}
+              scrollX={scrollX}
+              step={step}
+              width={itemWidth}
+              height={itemHeight}
+              sideScale={sideScale}
+            />
+          )}
+        />
+      )}
 
       {/* pagination */}
       <View className="mt-2 flex-row items-center" style={{ gap: 6 }}>
-        {data.map((item, i) => (
+        {data.map((item: any, i: number) => (
           <Dot
             key={item.id}
             index={i}
@@ -309,33 +324,9 @@ export function ScaleCarousel({
 /* ------------------------------------------------------------------ */
 export const DEMO_DATA: CarouselItem[] = [
   {
-    id: "1",
-    title: "Explore",
-    subtitle: "Find new places",
-    image: "https://picsum.photos/id/1018/600/800",
-  },
-  {
-    id: "2",
-    title: "Create",
-    subtitle: "Build something great",
-    image: "https://picsum.photos/id/1025/600/800",
-  },
-  {
-    id: "3",
-    title: "Learn",
-    subtitle: "Grow every day",
-    image: "https://picsum.photos/id/1043/600/800",
-  },
-  {
-    id: "4",
-    title: "Share",
-    subtitle: "Connect with friends",
-    image: "https://picsum.photos/id/1056/600/800",
-  },
-  {
-    id: "5",
-    title: "Relax",
-    subtitle: "Take a breath",
-    image: "https://picsum.photos/id/1067/600/800",
+    _id: "1",
+    duration: "15",
+    slug: "bsns",
+    thumbnail: "https://picsum.photos/id/1018/600/800",
   },
 ];

@@ -50,6 +50,19 @@ export default function HomeScreen() {
           <ChevronRight size={18} color="#A1A1AA" />
         </Pressable>
 
+        <Pressable
+          onPress={() => router.push("/login")}
+          className="py-4 px-12 bg-blue-700"
+        >
+          <ThemedText>Login</ThemedText>
+        </Pressable>
+        <Pressable
+          onPress={() => router.push("/storage")}
+          className="py-4 px-12 bg-red-700"
+        >
+          <ThemedText>Login</ThemedText>
+        </Pressable>
+
         <ThemedText>
           Lorem, ipsum dolor sit amet consectetur adipisicing elit. Quidem
           tempora repudiandae eligendi provident facilis eius reiciendis atque,

@@ -1,31 +1,52 @@
+import ProfileSkeleton from "@/components/loaders/ProfileLoader";
 import SafeView from "@/components/SafeView";
+import { authStorage } from "@/lib/auth.storage";
+import { fetcher } from "@/lib/fetcher";
+import { useQuery } from "@tanstack/react-query";
+import { Image } from "expo-image";
 import { router } from "expo-router";
 import {
-    BadgeQuestionMark,
-    ChevronLeft,
-    ChevronRight,
-    CircleHelp,
-    Crown,
-    FileText,
-    Heart,
-    LogOut,
-    RotateCcw,
-    Share as ShareIcon,
-    ShieldCheck,
-    User2,
+  BadgeQuestionMark,
+  ChevronLeft,
+  ChevronRight,
+  CircleHelp,
+  Crown,
+  FileText,
+  Heart,
+  LogOut,
+  RotateCcw,
+  Share as ShareIcon,
+  ShieldCheck,
+  User2,
 } from "lucide-react-native";
+import moment from "moment";
 import React from "react";
 import {
-    Linking,
-    Pressable,
-    ScrollView,
-    Share,
-    Text,
-    TouchableOpacity,
-    View,
+  Linking,
+  Pressable,
+  ScrollView,
+  Share,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 export default function Profile() {
+  const { data, isLoading } = useQuery({
+    queryKey: ["profile"],
+    queryFn: () => fetcher("/user"),
+  });
+
+  const user = data?.data ?? data;
+
+  if (isLoading) {
+    return <ProfileSkeleton />;
+  }
+
+  const handleLogout = async () => {
+    await authStorage.clearTokens();
+  };
+
   return (
     <SafeView tabBarInset={false} backgroundColor="#09090B">
       <ScrollView
@@ -35,39 +56,64 @@ export default function Profile() {
       >
         {/* Header */}
         <View className="flex-row items-center pt-6 pb-6">
-          <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={() => router.back()} className="mr-3 h-10 w-10 items-center justify-center rounded-full bg-zinc-900">
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            onPress={() => router.back()}
+            className="mr-3 h-10 w-10 items-center justify-center rounded-full bg-zinc-900"
+          >
             <ChevronLeft size={22} color="#FFFFFF" />
           </Pressable>
           <View>
-          <Text className="text-white text-3xl font-bold">Profile</Text>
-          <Text className="text-zinc-500 text-sm mt-1">
-            Your account & subscription
-          </Text>
+            <Text className="text-white text-3xl font-bold">Profile</Text>
+            <Text className="text-zinc-500 text-sm mt-1">
+              Your account & subscription
+            </Text>
           </View>
         </View>
 
         {/* Profile */}
-        <View className="">
-          <View className="flex-row items-center">
-            <View className="w-[72px] h-[72px] flex items-center justify-center rounded-full border-2 border-zinc-700 p-1">
-              <Text>
-                <User2 size={48} color={"white"} />
-              </Text>
-            </View>
+        {/* Profile */}
+        <View className="flex-row items-center">
+          {/* Avatar: image if it exists, otherwise the icon */}
+          <View className="w-[72px] h-[72px] items-center justify-center rounded-full border-2 border-zinc-700 p-1 overflow-hidden">
+            {user?.avatar ? (
+              <Image
+                source={{ uri: user.avatar }}
+                className="w-full h-full rounded-full"
+              />
+            ) : (
+              <User2 size={40} color="white" />
+            )}
+          </View>
 
-            <View className="ml-4 flex-1">
-              <Text className="text-white text-xl font-bold">
-                Prince Nishad
+          <View className="ml-4 flex-1">
+            {/* Name: only if it exists */}
+            {!!user?.name && (
+              <Text className="text-white text-xl font-bold capitalize">
+                {user.name}
               </Text>
+            )}
 
-              <Text className="text-zinc-400 text-sm mt-1 font-semibold">
-                9936752250
+            {/* Phone: if there is no name, it takes the title style */}
+            {!!user?.phone && (
+              <Text
+                className={
+                  user?.name
+                    ? "text-zinc-400 text-sm mt-1 font-semibold"
+                    : "text-white text-xl font-bold"
+                }
+              >
+                {user.phone}
               </Text>
+            )}
 
+            {/* Join date: only if it exists */}
+            {!!user?.createdAt && (
               <Text className="text-zinc-600 text-xs mt-1">
-                Join at : 10 oct 2026
+                Joined on {moment(user.createdAt).format("DD MMM YYYY")}
               </Text>
-            </View>
+            )}
           </View>
         </View>
 
@@ -180,7 +226,10 @@ export default function Profile() {
 
         {/* Logout */}
         <View className="px-5 mt-8">
-          <Pressable className="h-12 rounded-2xl border border-red-500/20 bg-red-500/5 flex-row items-center justify-center">
+          <Pressable
+            onPress={handleLogout}
+            className="h-12 rounded-2xl border border-red-500/20 bg-red-500/5 flex-row items-center justify-center"
+          >
             <LogOut size={19} color="#EF4444" />
 
             <Text className="text-red-400 font-semibold ml-2">Logout</Text>
