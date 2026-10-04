@@ -1,7 +1,25 @@
 import { authStorage } from "@/lib/auth.storage";
-import { useCallback, useEffect, useState } from "react";
+import {
+  createContext,
+  createElement,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
 
-export function useAuth() {
+type AuthContextValue = {
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  login: (accessToken: string, refreshToken: string) => Promise<void>;
+  logout: () => Promise<void>;
+  checkAuth: () => Promise<void>;
+};
+
+const AuthContext = createContext<AuthContextValue | null>(null);
+
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
@@ -38,11 +56,21 @@ export function useAuth() {
     setIsAuthenticated(false);
   }, []);
 
-  return {
+  const value = {
     isLoading,
     isAuthenticated,
     login,
     logout,
     checkAuth,
   };
+
+  return createElement(AuthContext.Provider, { value }, children);
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
 }

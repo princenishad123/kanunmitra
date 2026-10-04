@@ -1,7 +1,6 @@
 import ProfileSkeleton from "@/components/loaders/ProfileLoader";
 import SafeView from "@/components/SafeView";
 import { useAuth } from "@/hooks/use-auth";
-import { authStorage } from "@/lib/auth.storage";
 import { fetcher } from "@/lib/fetcher";
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
@@ -46,8 +45,8 @@ export default function Profile() {
   }
 
   const handleLogout = async () => {
-    await authStorage.clearTokens();
     await logout();
+    router.replace("/login");
   };
 
   return (
