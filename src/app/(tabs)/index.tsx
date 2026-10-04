@@ -51,10 +51,10 @@ export default function HomeScreen() {
         </Pressable>
 
         <Pressable
-          onPress={() => router.push("/login")}
+          onPress={() => router.push("/plan")}
           className="py-4 px-12 bg-blue-700"
         >
-          <ThemedText>Login</ThemedText>
+          <ThemedText>plan</ThemedText>
         </Pressable>
         <Pressable
           onPress={() => router.push("/storage")}

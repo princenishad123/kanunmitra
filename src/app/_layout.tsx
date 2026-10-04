@@ -47,6 +47,7 @@ function RootNavigator() {
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="orders" />
           <Stack.Screen name="profile" />
+          <Stack.Screen name="plan" />
         </Stack.Protected>
 
         <Stack.Protected guard={!isAuthenticated}>
