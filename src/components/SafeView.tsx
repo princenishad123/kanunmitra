@@ -7,24 +7,29 @@ import { Platform, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const SafeView: FC<
-  ChildrenInterface & { tabBarInset?: boolean; backgroundColor?: string }
-> = ({ children, tabBarInset = true, backgroundColor }) => {
+  ChildrenInterface & {
+    tabBarInset?: boolean;
+    bottomSafeArea?: boolean;
+    backgroundColor?: string;
+  }
+> = ({ children, tabBarInset = true, bottomSafeArea = true, backgroundColor }) => {
   return (
     <ThemedView
-      className="border border-white"
       style={[
         styles.container,
         backgroundColor ? { backgroundColor } : undefined,
       ]}
     >
       <SafeAreaView
-        className="border border-blue-700"
+        edges={bottomSafeArea ? undefined : ["top", "left", "right"]}
         style={[
           styles.safeArea,
           {
-            paddingBottom: tabBarInset
-              ? BottomTabInset + Spacing.three
-              : Spacing.three,
+            paddingBottom: bottomSafeArea
+              ? tabBarInset
+                ? BottomTabInset + Spacing.three
+                : Spacing.three
+              : 0,
           },
         ]}
       >
@@ -45,7 +50,7 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     paddingHorizontal: Spacing.half,
-    gap: Spacing.three,
+    gap: Spacing.two,
     maxWidth: MaxContentWidth,
   },
   heroSection: {

@@ -8,7 +8,7 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 
 export default function HomeScreen() {
   return (
-    <SafeView>
+    <SafeView tabBarInset={false} bottomSafeArea={false}>
       <Navbar
         appName="Nova"
         userName="Rahul Sharma"
@@ -18,14 +18,14 @@ export default function HomeScreen() {
       />
 
       <ScrollView
-        className=" border border-red-500  "
-
-        contentContainerStyle={{ paddingBottom: 32 }}
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: 24 }}
       >
         <ScaleCarousel data={DEMO_DATA} autoPlayMs={3500} />
 
-        <View className="px-4 pt-4">
-          <ThemedText type="subtitle" className="text-white">
+        <View className="px-4 pt-2">
+          <ThemedText type="default" className="text-lg font-bold text-white">
             Hello, welcome
           </ThemedText>
           <ThemedText className="mt-1 text-zinc-400">
@@ -51,9 +51,18 @@ export default function HomeScreen() {
         </Pressable>
 
         <ThemedText>
-          Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolorum
-          reiciendis voluptate accusamus ullam dicta magnam placeat mollitia
-          numquam. Hic odit repellendus debitis, similique id harum, sint sit
+          Lorem, ipsum dolor sit amet consectetur adipisicing elit. Quidem
+          tempora repudiandae eligendi provident facilis eius reiciendis atque,
+          iusto mollitia quibusdam nemo ratione, recusandae omnis possimus.
+          Autem doloribus, optio aperiam explicabo obcaecati deserunt quos
+          officiis delectus? Nobis tempore doloribus sint adipisci vel enim
+          nulla corrupti maiores? Explicabo praesentium quas quidem expedita
+          cupiditate deleniti reiciendis! Qui et, optio unde perferendis
+          excepturi impedit temporibus sequi voluptas quasi quis sunt
+          repudiandae magnam iure doloribus quibusdam cumque debitis nobis iste
+          quia ea hic! Ea, ducimus sapiente enim at magnam, omnis quasi, quo hic
+          numquam dolore voluptatibus nobis. Animi id rem tempora ducimus odio
+          commodi eum.
         </ThemedText>
       </ScrollView>
     </SafeView>
