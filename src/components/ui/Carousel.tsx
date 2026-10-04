@@ -180,12 +180,22 @@ export function ScaleCarousel({
 }: Props) {
   const { width: screenWidth } = useWindowDimensions();
 
-  const { data: carusel, isLoading } = useQuery({
+  const { data: carousel, isLoading } = useQuery({
     queryKey: ["carousel"],
     queryFn: () => fetcher("/video/carousel"),
   });
 
-  const data = carusel.data;
+  // The query result is undefined until it resolves. The API may return the
+  // list directly or wrap it in a `data` field, so normalize both shapes.
+  const data: CarouselItem[] = useMemo(
+    () =>
+      Array.isArray(carousel)
+        ? carousel
+        : Array.isArray(carousel?.data)
+          ? carousel.data
+          : [],
+    [carousel],
+  );
 
   const n = data.length;
   const itemWidth = screenWidth * itemWidthRatio;
@@ -259,11 +269,11 @@ export function ScaleCarousel({
 
   return (
     <View className="items-center">
-      {carusel.data && (
+      {data.length > 0 && (
         <AnimatedFlatList
           ref={listRef}
           data={loopData}
-          keyExtractor={(item) => item._id}
+          keyExtractor={(item) => item.key}
           horizontal
           showsHorizontalScrollIndicator={false}
           // start in the middle
@@ -305,9 +315,9 @@ export function ScaleCarousel({
 
       {/* pagination */}
       <View className="mt-2 flex-row items-center" style={{ gap: 6 }}>
-        {data.map((item: any, i: number) => (
+        {data.map((item, i) => (
           <Dot
-            key={item.id}
+            key={item._id}
             index={i}
             count={n}
             scrollX={scrollX}
