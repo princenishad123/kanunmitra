@@ -166,7 +166,10 @@ export default function Profile() {
               </View>
             </View>
 
-            <Pressable className="mt-5 h-12 rounded-xl bg-white items-center justify-center">
+            <Pressable
+              onPress={() => router.push("/subscriptions")}
+              className="mt-5 h-12 rounded-xl bg-white items-center justify-center"
+            >
               <Text className="text-black font-bold">Manage Subscription</Text>
             </Pressable>
           </View>
@@ -296,7 +299,7 @@ function MenuItem({
     }
 
     if (id === "faq") {
-      return;
+      return router.push("/faq");
     }
 
     if (id === "help") {
@@ -305,13 +308,13 @@ function MenuItem({
     }
 
     if (id === "terms-and-conditions") {
-      return;
+      return router.push("/terms-and-conditions");
     }
     if (id === "privacy-policy") {
-      return;
+      return router.push("/privacy-policy");
     }
     if (id === "refund-policy") {
-      return;
+      return router.push("/refund-policy");
     }
   };
 

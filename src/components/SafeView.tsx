@@ -1,78 +1,51 @@
-import { ThemedView } from "@/components/themed-view";
 import { WebBadge } from "@/components/web-badge";
-import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
+import { BottomTabInset, MaxContentWidth } from "@/constants/theme";
 import { ChildrenInterface } from "@/types/children.interface";
 import { FC } from "react";
-import { Platform, StyleSheet } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { Platform, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const SafeView: FC<
-  ChildrenInterface & {
-    tabBarInset?: boolean;
-    bottomSafeArea?: boolean;
-    backgroundColor?: string;
-  }
-> = ({ children, tabBarInset = true, bottomSafeArea = true, backgroundColor }) => {
-  return (
-    <ThemedView
-      style={[
-        styles.container,
-        backgroundColor ? { backgroundColor } : undefined,
-      ]}
-    >
-      <SafeAreaView
-        edges={bottomSafeArea ? undefined : ["top", "left", "right"]}
-        style={[
-          styles.safeArea,
-          {
-            paddingBottom: bottomSafeArea
-              ? tabBarInset
-                ? BottomTabInset + Spacing.three
-                : Spacing.three
-              : 0,
-          },
-        ]}
-      >
-        {children}
-
-        {Platform.OS === "web" && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
-  );
+type Props = ChildrenInterface & {
+  /** Add extra bottom space for a floating/custom tab bar. Default: false */
+  tabBarInset?: boolean;
+  /** Respect the device's bottom safe area (home indicator). Default: true */
+  bottomSafeArea?: boolean;
+  /** Override the screen background (hex string). */
+  backgroundColor?: string;
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    flexDirection: "row",
-  },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.half,
-    gap: Spacing.two,
-    maxWidth: MaxContentWidth,
-  },
-  heroSection: {
-    alignItems: "center",
-    justifyContent: "center",
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
-  },
-  title: {
-    textAlign: "center",
-  },
-  code: {
-    textTransform: "uppercase",
-  },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: "stretch",
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
-  },
-});
+const SafeView: FC<Props> = ({
+  children,
+  tabBarInset = false,
+  bottomSafeArea = true,
+  backgroundColor,
+}) => {
+  const insets = useSafeAreaInsets();
+
+  // Bottom space = real device inset (only once) + tab bar height (only if asked).
+  const paddingBottom =
+    (bottomSafeArea ? insets.bottom : 0) + (tabBarInset ? BottomTabInset : 0);
+
+  return (
+    <View
+      className="flex-1 flex-row justify-center bg-[#0A0A0A]"
+      style={backgroundColor ? { backgroundColor } : undefined}
+    >
+      <View
+        className="flex-1 gap-2 px-0.5"
+        style={{
+          maxWidth: MaxContentWidth,
+          paddingTop: insets.top,
+          paddingLeft: insets.left,
+          paddingRight: insets.right,
+          paddingBottom,
+        }}
+      >
+        {children}
+        {Platform.OS === "web" && <WebBadge />}
+      </View>
+    </View>
+  );
+};
 
 export default SafeView;

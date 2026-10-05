@@ -1,29 +1,35 @@
 "use client";
 
+import SafeView from "@/components/SafeView";
 import { ThemedText } from "@/components/themed-text";
-import { authStorage } from "@/lib/auth.storage";
-import { useEffect, useState } from "react";
-import { View } from "react-native";
+import { router } from "expo-router";
+import { Pressable, View } from "react-native";
 
 const Storage = () => {
-  const [token, setToken] = useState<string | null>(null);
-  const [refresh, setRefresh] = useState<string | null>(null);
-  useEffect(() => {
-    const getAuths = async () => {
-      const access = await authStorage.getAccessToken();
-      const e = await authStorage.getRefreshToken();
-      setRefresh(e);
-      setToken(access);
-    };
-
-    void getAuths();
-  }, []);
-
   return (
-    <View>
-      {/* <ThemedText>{token}</ThemedText> */}
-      <ThemedText>{refresh}</ThemedText>
-    </View>
+    <SafeView>
+      <View className="space-y-6">
+        <Pressable
+          onPress={() => router.push("/payment-success")}
+          className="py-4 px-4 rounded-xl bg-green-600"
+        >
+          <ThemedText>Payment Success</ThemedText>
+        </Pressable>
+        <Pressable
+          onPress={() => router.push("/payment-failed")}
+          className="py-4 px-4 rounded-xl bg-red-600"
+        >
+          <ThemedText>Payment Failed</ThemedText>
+        </Pressable>
+
+        <Pressable
+          onPress={() => router.push("/plan")}
+          className="py-4 px-12 bg-blue-700"
+        >
+          <ThemedText>plan</ThemedText>
+        </Pressable>
+      </View>
+    </SafeView>
   );
 };
 

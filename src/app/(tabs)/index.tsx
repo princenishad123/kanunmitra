@@ -1,6 +1,7 @@
 import SafeView from "@/components/SafeView";
 import { ThemedText } from "@/components/themed-text";
 import { DEMO_DATA, ScaleCarousel } from "@/components/ui/Carousel";
+import CategoryList from "@/components/ui/Categories";
 import { Navbar } from "@/components/ui/Navbar";
 import { router } from "expo-router";
 import { ChevronRight, ClipboardList } from "lucide-react-native";
@@ -23,6 +24,11 @@ export default function HomeScreen() {
         contentContainerStyle={{ flexGrow: 1, paddingBottom: 24 }}
       >
         <ScaleCarousel data={DEMO_DATA} autoPlayMs={3500} />
+        <CategoryList
+          title="View relative laws"
+          onSelect={(c) => {}}
+          onViewMore={() => {}}
+        />
 
         <View className="px-4 pt-2">
           <ThemedText type="default" className="text-lg font-bold text-white">
@@ -51,32 +57,11 @@ export default function HomeScreen() {
         </Pressable>
 
         <Pressable
-          onPress={() => router.push("/plan")}
+          onPress={() => router.push("/storage")}
           className="py-4 px-12 bg-blue-700"
         >
-          <ThemedText>plan</ThemedText>
+          <ThemedText>Test Screen</ThemedText>
         </Pressable>
-        <Pressable
-          onPress={() => router.push("/storage")}
-          className="py-4 px-12 bg-red-700"
-        >
-          <ThemedText>Login</ThemedText>
-        </Pressable>
-
-        <ThemedText>
-          Lorem, ipsum dolor sit amet consectetur adipisicing elit. Quidem
-          tempora repudiandae eligendi provident facilis eius reiciendis atque,
-          iusto mollitia quibusdam nemo ratione, recusandae omnis possimus.
-          Autem doloribus, optio aperiam explicabo obcaecati deserunt quos
-          officiis delectus? Nobis tempore doloribus sint adipisci vel enim
-          nulla corrupti maiores? Explicabo praesentium quas quidem expedita
-          cupiditate deleniti reiciendis! Qui et, optio unde perferendis
-          excepturi impedit temporibus sequi voluptas quasi quis sunt
-          repudiandae magnam iure doloribus quibusdam cumque debitis nobis iste
-          quia ea hic! Ea, ducimus sapiente enim at magnam, omnis quasi, quo hic
-          numquam dolore voluptatibus nobis. Animi id rem tempora ducimus odio
-          commodi eum.
-        </ThemedText>
       </ScrollView>
     </SafeView>
   );
