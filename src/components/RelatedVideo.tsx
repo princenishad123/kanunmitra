@@ -1,5 +1,5 @@
 import { Clock3, Lock } from "lucide-react-native";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useMemo } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -9,10 +9,10 @@ import {
   Text,
   View,
 } from "react-native";
-import useSWR from "swr";
 
 import { useRefresh } from "@/hooks/useRefresh";
 import { fetcher } from "@/lib/fetcher";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import Empty from "./shared/Empty";
 
 type Video = {
@@ -96,80 +96,50 @@ export default function RelatedVideo({
   onVideoPress,
   currentVideoId,
 }: RelatedVideoProps) {
-  const [page, setPage] = useState(1);
-  const [videos, setVideos] = useState<Video[]>([]);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const prevSlugRef = useRef(slug);
-
-  const url = slug
-    ? `video/?search=${encodeURIComponent(slug)}&page=${page}&limit=10`
-    : null;
-
-  const { data, error, isLoading, mutate } = useSWR<VideoResponse>(
-    url,
-    fetcher,
-    {
-      revalidateOnMount: true,
-      revalidateIfStale: true,
-      revalidateOnFocus: false,
-      revalidateOnReconnect: true,
-      shouldRetryOnError: false,
-      keepPreviousData: true,
-      dedupingInterval: 2000,
-    },
-  );
+  const {
+    data,
+    error,
+    isLoading,
+    isFetching,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+    refetch,
+  } = useInfiniteQuery({
+    queryKey: ["relatedvideo", slug],
+    initialPageParam: 1,
+    enabled: Boolean(slug),
+    queryFn: ({ pageParam }) =>
+      fetcher(
+        `/video?search=${encodeURIComponent(slug)}&page=${pageParam}&limit=10`,
+      ) as Promise<VideoResponse>,
+    getNextPageParam: (lastPage) =>
+      lastPage.data.pagination.hasNextPage
+        ? lastPage.data.pagination.page + 1
+        : undefined,
+  });
 
   const handleRefresh = useCallback(async () => {
-    await mutate();
-  }, [mutate]);
+    await refetch();
+  }, [refetch]);
 
   const { refresh, refreshing } = useRefresh(handleRefresh);
 
-  /*
-   * First page -> replace videos
-   * Next pages -> append videos
-   */
-  useEffect(() => {
-    if (!data?.data?.videos) return;
-
-    if (page === 1) {
-      setVideos(data.data.videos);
-    } else {
-      setVideos((previous) => {
-        const existingIds = new Set(previous.map((video) => video._id));
-
-        const newVideos = data.data.videos.filter(
-          (video) => !existingIds.has(video._id),
-        );
-
-        return [...previous, ...newVideos];
+  const videos = useMemo(() => {
+    const seenIds = new Set<string>();
+    return (data?.pages ?? [])
+      .flatMap((page) => page.data.videos)
+      .filter((video) => {
+        if (seenIds.has(video._id)) return false;
+        seenIds.add(video._id);
+        return true;
       });
-    }
-
-    setLoadingMore(false);
-  }, [data, page, slug]);
+  }, [data?.pages]);
 
   const handleLoadMore = useCallback(() => {
-    if (loadingMore || isLoading || !data?.data?.pagination?.hasNextPage) {
-      return;
-    }
-
-    setLoadingMore(true);
-    setPage((previous) => previous + 1);
-  }, [data, isLoading, loadingMore]);
-
-  /*
-   * Reset pagination only when slug actually changes (not on every mount).
-   * Previously this ran on mount and wiped `videos` AFTER SWR had already
-   * restored cached data, leaving "No related videos found" on revisit.
-   */
-  useEffect(() => {
-    if (prevSlugRef.current !== slug) {
-      prevSlugRef.current = slug;
-      setPage(1);
-      setVideos([]);
-    }
-  }, [slug]);
+    if (isFetching || !hasNextPage) return;
+    void fetchNextPage();
+  }, [fetchNextPage, hasNextPage, isFetching]);
 
   if (!slug) {
     return null;
@@ -183,7 +153,7 @@ export default function RelatedVideo({
    */
   if (
     refreshing ||
-    (isLoading && page === 1 && !data?.data?.videos && videos.length === 0)
+    (isLoading && videos.length === 0)
   ) {
     return (
       <View className="mt-6">
@@ -214,7 +184,7 @@ export default function RelatedVideo({
    * returned (empty) data. Otherwise a revisit would briefly show
    * "No related videos found" while SWR revalidates the cached key.
    */
-  if (!videos.length && !isLoading && !error && data) {
+  if (!videos.length && !isLoading && !error && data?.pages.length) {
     return <Empty />;
   }
 
@@ -323,7 +293,7 @@ export default function RelatedVideo({
           </Pressable>
         )}
         ListFooterComponent={
-          loadingMore ? (
+          isFetchingNextPage ? (
             <View className="items-center py-5">
               <ActivityIndicator size="small" color="#10b981" />
 
@@ -331,7 +301,7 @@ export default function RelatedVideo({
                 Loading more videos...
               </Text>
             </View>
-          ) : !data?.data?.pagination?.hasNextPage ? (
+          ) : !hasNextPage ? (
             <View className="items-center py-5">
               <Text className="text-xs text-neutral-600">No more videos</Text>
             </View>

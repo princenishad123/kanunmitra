@@ -1,8 +1,8 @@
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { ActivityIndicator, FlatList, Text, View } from "react-native";
-import useSWR from "swr";
 
 import { fetcher } from "@/lib/fetcher";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import VideoCard from "./shared/VideoCard";
 
 interface Video {
@@ -24,52 +24,51 @@ interface Pagination {
   hasPreviousPage: boolean;
 }
 
+interface VideoPageResponse {
+  data?: {
+    videos?: Video[];
+    pagination?: Pagination;
+  };
+}
+
 export default function VideosLayout() {
-  const [page, setPage] = useState(1);
-
-  const [allVideos, setAllVideos] = useState<Video[]>([]);
-
-  const [hasNextPage, setHasNextPage] = useState(true);
-
-  const { data, error, isLoading } = useSWR(
-    `/video?page=${page}&limit=16`,
-    fetcher,
-    {
-      shouldRetryOnError: false,
-      revalidateIfStale: false,
-      revalidateOnFocus: false,
+  const {
+    data,
+    error,
+    isLoading,
+    isFetching,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+  } = useInfiniteQuery({
+    queryKey: ["related"],
+    initialPageParam: 1,
+    queryFn: ({ pageParam }) =>
+      fetcher(`/video?page=${pageParam}&limit=16`) as Promise<VideoPageResponse>,
+    getNextPageParam: (lastPage) => {
+      const pagination = lastPage.data?.pagination;
+      return pagination?.hasNextPage
+        ? (pagination.page ?? 1) + 1
+        : undefined;
     },
-  );
+  });
 
-  // New page data
-  useEffect(() => {
-    if (!data?.data) return;
-
-    const newVideos: Video[] = data.data.videos ?? [];
-
-    const pagination: Pagination = data.data.pagination;
-
-    setAllVideos((prev) => {
-      const existingIds = new Set(prev.map((video) => video._id));
-
-      const uniqueVideos = newVideos.filter(
-        (video) => !existingIds.has(video._id),
-      );
-
-      return [...prev, ...uniqueVideos];
-    });
-
-    setHasNextPage(pagination.hasNextPage);
-  }, [data]);
+  const allVideos = useMemo(() => {
+    const seenIds = new Set<string>();
+    return (data?.pages ?? [])
+      .flatMap((page) => page.data?.videos ?? [])
+      .filter((video) => {
+        if (seenIds.has(video._id)) return false;
+        seenIds.add(video._id);
+        return true;
+      });
+  }, [data?.pages]);
 
   // Load next page
   const handleLoadMore = useCallback(() => {
-    if (isLoading) return;
-
-    if (!hasNextPage) return;
-
-    setPage((prev) => prev + 1);
-  }, [isLoading, hasNextPage]);
+    if (isFetching || !hasNextPage) return;
+    void fetchNextPage();
+  }, [fetchNextPage, hasNextPage, isFetching]);
 
   // Initial loader
   if (isLoading && allVideos.length === 0) {
@@ -130,7 +129,7 @@ export default function VideosLayout() {
 
         ListFooterComponent={
           <>
-            {isLoading && allVideos.length > 0 && (
+            {isFetchingNextPage && allVideos.length > 0 && (
               <View className="items-center py-5">
                 <ActivityIndicator size="small" color="#10b981" />
 
@@ -140,7 +139,7 @@ export default function VideosLayout() {
               </View>
             )}
 
-            {!isLoading && !hasNextPage && allVideos.length > 0 && (
+            {!isFetching && !hasNextPage && allVideos.length > 0 && (
               <View className="items-center py-5">
                 <Text className="text-xs text-zinc-500">No more videos</Text>
               </View>

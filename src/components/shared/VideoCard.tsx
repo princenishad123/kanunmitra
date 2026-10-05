@@ -1,6 +1,4 @@
-import { router } from "expo-router";
 import { Clock3, Lock } from "lucide-react-native";
-import React from "react";
 import { Image, Pressable, Text, View } from "react-native";
 
 interface Video {
@@ -21,15 +19,7 @@ export default function VideoCard({ video }: VideoCardProps) {
   return (
     <Pressable
       className="overflow-hidden rounded-xl bg-zinc-900"
-      onPress={() =>
-        router.push({
-          pathname: video.isLocked ? "/subscription" : "/watch/[id]",
-          params: {
-            id: video._id,
-            slug: video.slug,
-          },
-        })
-      }
+      onPress={() => {}}
     >
       {/* Thumbnail */}
       <View className="relative">

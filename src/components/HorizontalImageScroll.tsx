@@ -1,8 +1,6 @@
 import { Props } from "@/types/video.types";
 import { Image } from "expo-image";
-import { router } from "expo-router";
 import { ChevronRight, Lock } from "lucide-react-native";
-import React from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 export default function HorizontalImageScroll({
@@ -16,8 +14,6 @@ export default function HorizontalImageScroll({
   loading = false,
 }: Props) {
   const skeletonItems = Array.from({ length: 10 });
-
-  console.log(slug);
 
   return (
     <View className="mb-4">
@@ -38,15 +34,7 @@ export default function HorizontalImageScroll({
             <TouchableOpacity
               activeOpacity={0.8}
               disabled={loading}
-              onPress={() =>
-                router.push({
-                  pathname: "/view/[search]",
-                  params: {
-                    search: slug as string,
-                    name,
-                  },
-                })
-              }
+              onPress={() => {}}
               className="flex-row items-center rounded-full bg-zinc-800 px-3 py-1.5"
             >
               {loading ? (
@@ -94,16 +82,7 @@ export default function HorizontalImageScroll({
               <TouchableOpacity
                 key={item._id}
                 activeOpacity={0.85}
-                onPress={() =>
-                  router.push({
-                    pathname: item.isLocked ? "/subscription" : "/watch/[id]",
-                    params: {
-                      id: item._id,
-                      slug: item.slug,
-                      name: item.name,
-                    },
-                  })
-                }
+                onPress={() => {}}
                 style={{
                   width,
                   height,

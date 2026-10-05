@@ -1,13 +1,21 @@
+import HorizontalImageScroll from "@/components/HorizontalImageScroll";
 import SafeView from "@/components/SafeView";
 import { ThemedText } from "@/components/themed-text";
 import { DEMO_DATA, ScaleCarousel } from "@/components/ui/Carousel";
 import CategoryList from "@/components/ui/Categories";
 import { Navbar } from "@/components/ui/Navbar";
+import VideosLayout from "@/components/VidoesLayout";
+import { fetcher } from "@/lib/fetcher";
+import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { ChevronRight, ClipboardList } from "lucide-react-native";
 import { Pressable, ScrollView, Text, View } from "react-native";
 
 export default function HomeScreen() {
+  const { data } = useQuery({
+    queryKey: ["home"],
+    queryFn: () => fetcher("/category/home"),
+  });
   return (
     <SafeView tabBarInset={false} bottomSafeArea={false}>
       <Navbar
@@ -30,15 +38,22 @@ export default function HomeScreen() {
           onViewMore={() => {}}
         />
 
-        <View className="px-4 pt-2">
-          <ThemedText type="default" className="text-lg font-bold text-white">
-            Hello, welcome
-          </ThemedText>
-          <ThemedText className="mt-1 text-zinc-400">
-            Get support for your legal needs.
-          </ThemedText>
-        </View>
+        {data?.data?.map((category: any) => (
+          <HorizontalImageScroll
+            key={category._id}
+            data={category.videos ?? []}
+            width={140}
+            height={180}
+            name={category.name}
+            slug={category.slug}
+            button
+            onViewMore={(slug) => {
+              if (!slug) return;
+            }}
+          />
+        ))}
 
+        <VideosLayout />
         <Pressable
           accessibilityRole="button"
           onPress={() => router.push("/orders")}
